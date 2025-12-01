@@ -8,7 +8,7 @@
     @for (msg of messages(); track msg;) {
       <div class="message" [class.user]="msg.role === 'user'">
         <strong>{{ msg.role === 'user' ? 'Вы' : 'DeepSeek' }}:</strong>
-        <p>{{ msg.content }}</p>
+        <p class="formatted-text">{{ msg.content }}</p>
       </div>
     }
 

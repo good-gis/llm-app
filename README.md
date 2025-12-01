@@ -1,59 +1,109 @@
-# LlmApi
+# 📱 LLM-Chat App 
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.1.
+Современное веб-приложение, построенное на Angular 21 с использованием последних технологий и лучших практик разработки.
 
-## Development server
+## 🛠 Технологии
 
-To start a local development server, run:
+### Основные зависимости
+- **Angular 21** - современный фреймворк для построения клиентских приложений
+- **TypeScript 5.9** - типизированный JavaScript
+- **RxJS 7.8** - реактивное программирование
 
+### Dev зависимости
+- **Vitest 4.0** - быстрый фреймворк для unit-тестирования
+- **JSDOM 27** - симуляция DOM для тестирования
+- **Angular CLI 21** - инструменты разработки Angular
+
+## ⚡ Быстрый старт
+
+### Предварительные требования
+- Node.js 18+ и npm/yarn
+- Angular CLI (установите глобально: `npm install -g @angular/cli`)
+
+### Установка и запуск
+
+1. **Клонируйте репозиторий**
+```bash
+git clone <repository-url>
+cd <project-folder>
+```
+
+2. **Установите зависимости**
+```bash
+npm install
+```
+
+3. **Запустите приложение локально**
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+4. **Откройте в браузере**
+```
+http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🚀 Скрипты проекта
 
+| Скрипт | Назначение |
+|--------|------------|
+| `ng serve` | Запуск development сервера на порту 4200 |
+| `ng build` | Сборка production версии приложения |
+| `ng test` | Запуск unit-тестов через Vitest |
+| `ng lint` | Проверка кода линтером |
+
+## 🧪 Тестирование
+
+Проект использует **Vitest** для unit-тестирования:
 ```bash
-ng generate --help
+# Запуск всех тестов
+npm test
+
+# Запуск тестов в watch режиме
+npm run test:watch
 ```
 
-## Building
+## 📁 Структура проекта
 
-To build the project run:
-
-```bash
-ng build
+```
+src/
+├── app/
+│   ├── components/     # Компоненты приложения
+│   ├── services/       # Сервисы и бизнес-логика
+│   ├── models/         # Типы и интерфейсы
+│   └── app.module.ts   # Корневой модуль
+├── assets/            # Статические ресурсы
+└── styles/            # Глобальные стили
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🎥 Демо
 
-## Running unit tests
+### Видео работы приложения
+*Здесь будет размещено демонстрационное видео работы приложения*
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+📹 *Скоро здесь появится видео с демонстрацией функционала*
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## 📦 Сборка для production
 
 ```bash
-ng e2e
+# Production сборка
+ng build --configuration production
+
+# Сборка с анализом размера бандлов
+ng build --configuration production --stats-json
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 🤝 Вклад в проект
 
-## Additional Resources
+1. Форкните репозиторий
+2. Создайте ветку для вашей фичи (`git checkout -b feature/amazing-feature`)
+3. Закоммитьте изменения (`git commit -m 'Add amazing feature'`)
+4. Запушьте в ветку (`git push origin feature/amazing-feature`)
+5. Откройте Pull Request
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 📄 Лицензия
+
+Этот проект лицензирован под MIT License - смотрите файл LICENSE для подробностей.
+
+---
+**✨ Happy coding!** ✨

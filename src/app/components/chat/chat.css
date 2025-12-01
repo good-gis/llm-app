@@ -66,3 +66,8 @@
   text-align: center;
   margin-top: 10px;
 }
+
+.formatted-text {
+  white-space: pre-wrap;    /* Сохраняет переносы и пробелы */
+  word-break: break-word;
+}
