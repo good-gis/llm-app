@@ -1,0 +1,41 @@
+<div class="chat-container">
+  <div class="chat-header">
+    <h2>Чат с DeepSeek</h2>
+    <button (click)="clearChat()">Очистить</button>
+  </div>
+
+  <div class="chat-messages">
+    @for (msg of messages(); track msg;) {
+      <div class="message" [class.user]="msg.role === 'user'">
+        <strong>{{ msg.role === 'user' ? 'Вы' : 'DeepSeek' }}:</strong>
+        <p>{{ msg.content }}</p>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="message assistant">
+        <strong>DeepSeek:</strong>
+        <p>Печатает...</p>
+      </div>
+    }
+  </div>
+
+  <div class="chat-input">
+        <textarea
+          [(ngModel)]="userInput"
+          placeholder="Введите сообщение..."
+          (keydown.enter)="sendMessage(); $event.preventDefault()"
+          [disabled]="isLoading()"
+        ></textarea>
+    <button
+      (click)="sendMessage()"
+      [disabled]="!userInput.trim() || isLoading()"
+    >
+      Отправить
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="error">{{ error() }}</div>
+}
