@@ -17,6 +17,7 @@ export class Chat {
   messages = signal<ChatMessage[]>([]);
   userInput = '';
   isLoading = signal(false);
+  jsonMode = signal(false);
   error = signal<string | null>(null);
 
   sendMessage() {
@@ -28,7 +29,7 @@ export class Chat {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.chatService.sendMessage(this.messages())
+    this.chatService.sendMessage(this.messages(), this.jsonMode())
       .pipe(
         catchError(err => {
           console.error('API Error:', err);
@@ -38,7 +39,6 @@ export class Chat {
         })
       )
       .subscribe(response => {
-        console.log(response);
         const aiContent = response.choices[0].message.content;
         this.messages.update(msgs => [...msgs, { role: 'assistant', content: aiContent }]);
         this.isLoading.set(false);
@@ -48,5 +48,13 @@ export class Chat {
   clearChat() {
     this.messages.set([]);
     this.error.set(null);
+  }
+
+  formatJson(text: string): string | null {
+    try {
+      return JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      return null;
+    }
   }
 }

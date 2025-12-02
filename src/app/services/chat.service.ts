@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -27,11 +27,18 @@ export class ChatService {
 
   constructor(private http: HttpClient) {}
 
-  sendMessage(messages: ChatMessage[]): Observable<ChatResponse> {
+  sendMessage(messages: ChatMessage[], jsonAnswer: boolean = false): Observable<ChatResponse> {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.apiKey}`,
       'Content-Type': 'application/json'
     });
+
+    if (jsonAnswer) {
+      messages.push({
+        role: "system",
+        content: 'Ты — строгий JSON-ассистент. На любой запрос пользователя ты отвечаешь ТОЛЬКО валидным JSON. Никаких пояснений, комментариев, markdown, ```json или дополнительного текста. Только чистый JSON. Формат ответа: {"response": "строка с ответом на вопрос пользователя","type": "text", // или "error", "clarification" и т.д., если нужно" timestamp": "ISO 8601 строка" } Убедись, что JSON валиден и может быть распарсен без ошибок.',
+      });
+    }
 
     const body = {
       model: 'DeepSeek V3.2-Exp',

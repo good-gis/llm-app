@@ -71,3 +71,16 @@
   white-space: pre-wrap;    /* Сохраняет переносы и пробелы */
   word-break: break-word;
 }
+
+.json-response {
+  background-color: #2d3748;
+  color: #f8f8f2;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  margin: 8px 0;
+  white-space: pre;
+  font-size: 14px;
+  line-height: 1.4;
+}

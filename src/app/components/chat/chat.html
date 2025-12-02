@@ -1,15 +1,30 @@
 <div class="chat-container">
   <div class="chat-header">
     <h2>Чат с DeepSeek</h2>
-    <button (click)="clearChat()">Очистить</button>
+    <div>
+      <input
+        type="checkbox"
+        [checked]="jsonMode()"
+        (change)="jsonMode.set(!!$event.target?.checked); clearChat();"
+        id="json-mode"
+      />
+      <label for="json-mode">Ответы в формате JSON</label>
+      <button (click)="clearChat()">Очистить</button>
+    </div>
   </div>
 
   <div class="chat-messages">
     @for (msg of messages(); track msg;) {
-      <div class="message" [class.user]="msg.role === 'user'">
-        <strong>{{ msg.role === 'user' ? 'Вы' : 'DeepSeek' }}:</strong>
-        <p class="formatted-text">{{ msg.content }}</p>
-      </div>
+      @if (msg.role === 'user' || msg.role === 'assistant') {
+        <div class="message" [class.user]="msg.role === 'user'">
+          <strong>{{ msg.role === 'user' ? 'Вы' : 'DeepSeek' }}:</strong>
+          @if (formatJson(msg.content); as json) {
+            <pre class="json-response">{{ json }}</pre>
+          } @else {
+            <p class="formatted-text">{{ msg.content }}</p>
+          }
+        </div>
+      }
     }
 
     @if (isLoading()) {
