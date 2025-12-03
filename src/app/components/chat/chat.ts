@@ -17,7 +17,7 @@ export class Chat {
   messages = signal<ChatMessage[]>([]);
   userInput = '';
   isLoading = signal(false);
-  jsonMode = signal(false);
+  mode = signal<null | 'book' | 'json'>(null);
   error = signal<string | null>(null);
 
   sendMessage() {
@@ -29,7 +29,28 @@ export class Chat {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.chatService.sendMessage(this.messages(), this.jsonMode())
+    this.chatService.sendMessage(this.messages(), this.mode())
+      .pipe(
+        catchError(err => {
+          console.error('API Error:', err);
+          this.error.set('Ошибка при обращении к модели. Проверьте API-ключ.');
+          this.isLoading.set(false);
+          return of({ choices: [{ message: { role: 'assistant', content: 'Извините, не могу ответить.' } }] });
+        })
+      )
+      .subscribe(response => {
+        const aiContent = response.choices[0].message.content;
+        this.messages.update(msgs => [...msgs, { role: 'assistant', content: aiContent }]);
+        this.isLoading.set(false);
+      });
+  }
+
+  sendBookFirstMessage() {
+    this.clearChat();
+    this.messages.set([{ role: 'user', content: 'Хочу подобрать книгу. Задавай мне вопросы и порекомендуй книгу' }])
+
+
+    this.chatService.sendMessage(this.messages(), this.mode())
       .pipe(
         catchError(err => {
           console.error('API Error:', err);

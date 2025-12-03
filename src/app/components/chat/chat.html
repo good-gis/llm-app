@@ -2,13 +2,36 @@
   <div class="chat-header">
     <h2>Чат с DeepSeek</h2>
     <div>
-      <input
-        type="checkbox"
-        [checked]="jsonMode()"
-        (change)="jsonMode.set(!!$event.target?.checked); clearChat();"
-        id="json-mode"
-      />
-      <label for="json-mode">Ответы в формате JSON</label>
+      <label>
+        <input
+          type="radio"
+          name="mode"
+          [checked]="mode() === 'book'"
+          (change)="mode.set('book'); sendBookFirstMessage()"
+        />
+        Рекомендуй книги
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="mode"
+          [checked]="mode() === 'json'"
+          (change)="mode.set('json'); clearChat()"
+        />
+        Ответы в формате JSON
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="mode"
+          [checked]="mode() === null"
+          (change)="mode.set(null); clearChat()"
+        />
+        Обычный режим
+      </label>
+
       <button (click)="clearChat()">Очистить</button>
     </div>
   </div>
