@@ -53,7 +53,7 @@
     @if (isLoading()) {
       <div class="message assistant">
         <strong>DeepSeek:</strong>
-        <p>Печатает...</p>
+        <p>Думает...</p>
       </div>
     }
   </div>
@@ -70,6 +70,12 @@
       [disabled]="!userInput.trim() || isLoading()"
     >
       Отправить
+    </button>
+    <button
+      (click)="sendSystemPromptMessage()"
+      [disabled]="!userInput.trim() || isLoading()"
+    >
+      Изменить system prompt
     </button>
   </div>
 </div>

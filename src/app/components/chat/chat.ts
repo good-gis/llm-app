@@ -45,6 +45,18 @@ export class Chat {
       });
   }
 
+  sendSystemPromptMessage() {
+    if (!this.userInput.trim()) return;
+
+    const userMessage: ChatMessage = { role: 'system', content: this.userInput.trim() };
+    this.messages.update(msgs => [...msgs, userMessage]);
+    this.userInput = '';
+    this.isLoading.set(false);
+    this.error.set(null);
+
+    alert(JSON.stringify(this.messages().filter(msg => msg.role === 'system')));
+  }
+
   sendBookFirstMessage() {
     this.clearChat();
     this.messages.set([{ role: 'user', content: 'Хочу подобрать книгу. Задавай мне вопросы и порекомендуй книгу' }])
