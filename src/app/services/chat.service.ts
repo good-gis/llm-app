@@ -27,7 +27,7 @@ export class ChatService {
 
   constructor(private http: HttpClient) {}
 
-  sendMessage(messages: ChatMessage[], mode: 'book' | 'json' | null): Observable<ChatResponse> {
+  sendMessage(messages: ChatMessage[], mode: 'book' | 'json' | null, temperature: number): Observable<ChatResponse> {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.apiKey}`,
       'Content-Type': 'application/json'
@@ -50,6 +50,7 @@ export class ChatService {
     const body = {
       model: 'DeepSeek V3.2-Exp',
       messages: messages,
+      temperature: temperature
     };
 
     return this.http.post<ChatResponse>(this.apiUrl, body, { headers });

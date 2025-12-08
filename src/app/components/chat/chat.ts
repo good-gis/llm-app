@@ -19,6 +19,7 @@ export class Chat {
   isLoading = signal(false);
   mode = signal<null | 'book' | 'json'>(null);
   error = signal<string | null>(null);
+  temperature = signal<number>(0.7);
 
   sendMessage() {
     if (!this.userInput.trim()) return;
@@ -29,7 +30,7 @@ export class Chat {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.chatService.sendMessage(this.messages(), this.mode())
+    this.chatService.sendMessage(this.messages(), this.mode(), this.temperature())
       .pipe(
         catchError(err => {
           console.error('API Error:', err);
@@ -62,7 +63,7 @@ export class Chat {
     this.messages.set([{ role: 'user', content: 'Хочу подобрать книгу. Задавай мне вопросы и порекомендуй книгу' }])
 
 
-    this.chatService.sendMessage(this.messages(), this.mode())
+    this.chatService.sendMessage(this.messages(), this.mode(), this.temperature())
       .pipe(
         catchError(err => {
           console.error('API Error:', err);

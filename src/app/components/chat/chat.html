@@ -32,6 +32,16 @@
         Обычный режим
       </label>
 
+      <label style="margin-left: 16px;">
+        Температура:
+        <select [(ngModel)]="temperature" [disabled]="isLoading()">
+          <option [ngValue]="0">0 (детерминированно)</option>
+          <option [ngValue]="0.7">0.7 (уравновешенно)</option>
+          <option [ngValue]="1.2">1.2 (креативно)</option>
+          <option [ngValue]="2">2 (сходим с ума)</option>
+        </select>
+      </label>
+
       <button (click)="clearChat()">Очистить</button>
     </div>
   </div>
