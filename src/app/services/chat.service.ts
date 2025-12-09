@@ -1,35 +1,20 @@
-// src/app/chat.service.ts
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../environments/environment';
-
-export interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
-
-export interface ChatResponse {
-  choices: Array<{
-    message: {
-      role: 'assistant';
-      content: string;
-    };
-  }>;
-}
+import { CredentialsService } from './credentials.service';
+import {ChatResponse} from '../interfaces/chat-response.interface';
+import {ChatMessage} from '../interfaces/chat-message.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private readonly apiUrl = environment.apiUrl;
-  private readonly apiKey = environment.apiKey;
-
-  constructor(private http: HttpClient) {}
+  private readonly credentialsService = inject(CredentialsService);
+  private readonly http = inject(HttpClient);
 
   sendMessage(messages: ChatMessage[], mode: 'book' | 'json' | null, temperature: number): Observable<ChatResponse> {
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${this.credentialsService.getCredentials().apiKey}`,
       'Content-Type': 'application/json'
     });
 
@@ -43,16 +28,17 @@ export class ChatService {
     if (systemPrompt) {
       messages.push({
         role: 'system',
-        content: systemPrompt
+        content: systemPrompt,
+        usage: undefined,
+        timeOfResponse: undefined
       })
     }
 
     const body = {
-      model: 'DeepSeek V3.2-Exp',
       messages: messages,
       temperature: temperature
     };
 
-    return this.http.post<ChatResponse>(this.apiUrl, body, { headers });
+    return this.http.post<ChatResponse>(this.credentialsService.getCredentials().apiUrl, body, { headers });
   }
 }

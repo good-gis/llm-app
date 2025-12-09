@@ -32,17 +32,27 @@
         Обычный режим
       </label>
 
-      <label style="margin-left: 16px;">
-        Температура:
-        <select [(ngModel)]="temperature" [disabled]="isLoading()">
-          <option [ngValue]="0">0 (детерминированно)</option>
-          <option [ngValue]="0.7">0.7 (уравновешенно)</option>
-          <option [ngValue]="1.2">1.2 (креативно)</option>
-          <option [ngValue]="2">2 (сходим с ума)</option>
-        </select>
-      </label>
-
       <button (click)="clearChat()">Очистить</button>
+
+      <div class="settings">
+        <label style="margin-left: 16px;">
+          Температура:
+          <select [(ngModel)]="temperature" [disabled]="isLoading()">
+            <option [ngValue]="0">0 (детерминированно)</option>
+            <option [ngValue]="0.7">0.7 (уравновешенно)</option>
+            <option [ngValue]="1.2">1.2 (креативно)</option>
+            <option [ngValue]="2">2 (сходим с ума)</option>
+          </select>
+        </label>
+        <label style="margin-left: 16px;">
+          LLM:
+          <select [(ngModel)]="model" [disabled]="isLoading()">
+            <option [ngValue]="Model.DeepSeek_V3_2">DeepSeek 3.2V</option>
+            <option [ngValue]="Model.Gemini_2_0_Flash">Gemini 2.0 Flash</option>
+            <option [ngValue]="Model.Grok_4_Fast">Grok 4 Fast</option>
+          </select>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -50,11 +60,19 @@
     @for (msg of messages(); track msg;) {
       @if (msg.role === 'user' || msg.role === 'assistant') {
         <div class="message" [class.user]="msg.role === 'user'">
-          <strong>{{ msg.role === 'user' ? 'Вы' : 'DeepSeek' }}:</strong>
+          <strong>{{ msg.role === 'user' ? 'Вы' : model() }}:</strong>
           @if (formatJson(msg.content); as json) {
             <pre class="json-response">{{ json }}</pre>
+            @if (msg.usage && msg.timeOfResponse) {
+              <p class="json-response usage">{{ JSON.stringify(msg.usage) }}</p>
+              <p class="json-response time">{{ 'Время ответа в мс: ' + msg.timeOfResponse }}</p>
+            }
           } @else {
             <p class="formatted-text">{{ msg.content }}</p>
+            @if (msg.usage && msg.timeOfResponse) {
+              <p class="json-response usage">{{ JSON.stringify(msg.usage) }}</p>
+              <p class="json-response time">{{ 'Время ответа в мс: ' + msg.timeOfResponse }}</p>
+            }
           }
         </div>
       }
@@ -62,7 +80,7 @@
 
     @if (isLoading()) {
       <div class="message assistant">
-        <strong>DeepSeek:</strong>
+        <strong>{{ model() }}:</strong>
         <p>Думает...</p>
       </div>
     }
