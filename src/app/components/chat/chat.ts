@@ -1,16 +1,14 @@
-import {Component, effect, inject, signal} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {ChatService} from '../../services/chat.service';
-import {catchError, of} from 'rxjs';
-import {Model} from '../../enums/model';
-import {CredentialsService} from '../../services/credentials.service';
-import {ChatMessage} from '../../interfaces/chat-message.interface';
+import { Component, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { catchError, of, finalize } from 'rxjs';
+import { Model } from '../../enums/model';
+import { ChatService } from '../../services/chat.service';
+import { CredentialsService } from '../../services/credentials.service';
+import { ChatMessage } from '../../interfaces/chat-message.interface';
 
 @Component({
   selector: 'app-chat',
-  imports: [
-    FormsModule
-  ],
+  imports: [FormsModule],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
@@ -28,79 +26,33 @@ export class Chat {
 
   constructor() {
     effect(() => {
-      const currentModel = this.model();
-      this.credentialsService.setCredentials(currentModel);
+      this.credentialsService.setCredentials(this.model());
     });
   }
 
-  sendMessage() {
+  sendMessage(): void {
     if (!this.userInput.trim()) return;
-
-    const userMessage: ChatMessage = { role: 'user', content: this.userInput.trim(), usage: undefined, timeOfResponse: undefined };
-    this.messages.update(msgs => [...msgs, userMessage]);
+    const content = this.userInput.trim();
     this.userInput = '';
-    this.isLoading.set(true);
-    this.error.set(null);
-
-    const timestampStart = Date.now();
-    this.chatService.sendMessage(this.messages(), this.mode(), this.temperature())
-      .pipe(
-        catchError(err => {
-          console.error('API Error:', err);
-          this.error.set('Ошибка при обращении к модели. Проверьте API-ключ.');
-          this.isLoading.set(false);
-          return of({ choices: [{ message: { role: 'assistant', content: 'Извините, не могу ответить.' } }], usage: undefined });
-        })
-      )
-      .subscribe(response => {
-        const aiContent = response.choices[0].message.content;
-        const timestamp = Date.now() - timestampStart;
-        this.messages.update(msgs => [...msgs, { role: 'assistant', content: aiContent, usage: response.usage, timeOfResponse: timestamp }]);
-        this.isLoading.set(false);
-      });
+    this.addMessage({ role: 'user', content });
+    this.sendToModel();
   }
 
-  sendSystemPromptMessage() {
+  sendSystemPromptMessage(): void {
     if (!this.userInput.trim()) return;
-
-    const userMessage: ChatMessage = { role: 'system', content: this.userInput.trim(), usage: undefined, timeOfResponse: undefined };
-    this.messages.update(msgs => [...msgs, userMessage]);
+    const content = this.userInput.trim();
     this.userInput = '';
-    this.isLoading.set(false);
-    this.error.set(null);
-
-    alert(JSON.stringify(this.messages().filter(msg => msg.role === 'system')));
+    this.addMessage({ role: 'system', content });
+    console.log('System messages:', this.messages().filter(m => m.role === 'system'));
   }
 
-  sendBookFirstMessage() {
+  sendBookFirstMessage(): void {
     this.clearChat();
-    this.messages.set([{ role: 'user', content: 'Хочу подобрать книгу. Задавай мне вопросы и порекомендуй книгу', usage: undefined, timeOfResponse: undefined }]);
-
-    const timestampStart = Date.now();
-    this.chatService.sendMessage(this.messages(), this.mode(), this.temperature())
-      .pipe(
-        catchError(err => {
-          console.error('API Error:', err);
-          this.error.set('Ошибка при обращении к модели. Проверьте API-ключ.');
-          this.isLoading.set(false);
-          return of({ choices: [{ message: { role: 'assistant', content: 'Извините, не могу ответить.' } }], usage: undefined });
-        })
-      )
-      .subscribe(response => {
-        const aiContent = response.choices[0].message.content;
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: aiContent,
-          usage: response.usage,
-          timeOfResponse: Date.now() - timestampStart,
-        };
-        this.messages.update(msgs => [...msgs, assistantMessage]);
-
-        this.isLoading.set(false);
-      });
+    this.addMessage({ role: 'user', content: 'Хочу подобрать книгу. Задавай мне вопросы и порекомендуй книгу' });
+    this.sendToModel();
   }
 
-  clearChat() {
+  clearChat(): void {
     this.messages.set([]);
     this.error.set(null);
   }
@@ -113,6 +65,53 @@ export class Chat {
     }
   }
 
+  private addMessage(message: Omit<ChatMessage, 'usage' | 'timeOfResponse'>): void {
+    const fullMessage: ChatMessage = { ...message, usage: undefined, timeOfResponse: undefined };
+    this.messages.update(msgs => [...msgs, fullMessage]);
+  }
+
+  private sendToModel(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    const timestampStart = Date.now();
+
+    this.chatService.sendMessage(this.messages(), this.mode(), this.temperature())
+      .pipe(
+        catchError(err => {
+          console.error('API Error:', err);
+          let message = 'Ошибка при обращении к модели.';
+
+          if (err?.error?.message?.includes('context length') || err?.error?.message?.includes('Input too long')) {
+            message = 'Слишком длинный диалог! Превышен лимит модели (128K токенов). Очистите чат.';
+          } else if (err?.status === 401) {
+            message = 'Неверный API-ключ или доступ запрещён.';
+          }
+
+          this.error.set(message);
+          this.isLoading.set(false);
+          return of({ choices: [{ message: { role: 'assistant', content: 'Извините, не могу обработать запрос.' } }], usage: undefined });
+        }),
+        finalize(() => this.isLoading.set(false))
+      )
+      .subscribe(response => {
+        const aiContent = response.choices[0].message.content;
+        const timeOfResponse = Date.now() - timestampStart;
+        this.addMessage({
+          role: 'assistant',
+          content: aiContent,
+        });
+        // Обновляем последнее сообщение с метаданными
+        this.messages.update(msgs => {
+          const last = msgs[msgs.length - 1];
+          return [
+            ...msgs.slice(0, -1),
+            { ...last, usage: response.usage, timeOfResponse }
+          ];
+        });
+      });
+  }
+
+  // Для шаблона
   protected readonly Model = Model;
   protected readonly JSON = JSON;
 }

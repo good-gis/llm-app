@@ -1,10 +1,12 @@
+export interface Usage {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  usage: {
-    "completion_tokens": number,
-    "prompt_tokens": number,
-    "total_tokens": number
-  } | undefined;
+  usage: Usage | undefined;
   timeOfResponse: number | undefined;
 }

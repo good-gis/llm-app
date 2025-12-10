@@ -1,41 +1,46 @@
 <div class="chat-container">
-  <div class="chat-header">
-    <h2>Чат с DeepSeek</h2>
-    <div>
-      <label>
-        <input
-          type="radio"
-          name="mode"
-          [checked]="mode() === 'book'"
-          (change)="mode.set('book'); sendBookFirstMessage()"
-        />
-        Рекомендуй книги
-      </label>
+  <!-- Заголовок и управление -->
+  <header class="chat-header">
+    <h2>Чат с {{ model() }}</h2>
 
-      <label>
-        <input
-          type="radio"
-          name="mode"
-          [checked]="mode() === 'json'"
-          (change)="mode.set('json'); clearChat()"
-        />
-        Ответы в формате JSON
-      </label>
+    <div class="controls">
+      <!-- Режимы -->
+      <fieldset class="mode-group">
+        <label>
+          <input
+            type="radio"
+            name="mode"
+            [checked]="mode() === 'book'"
+            (change)="mode.set('book'); sendBookFirstMessage()"
+          />
+          Рекомендуй книги
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="mode"
+            [checked]="mode() === 'json'"
+            (change)="mode.set('json'); clearChat()"
+          />
+          Ответы в формате JSON
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="mode"
+            [checked]="mode() === null"
+            (change)="mode.set(null); clearChat()"
+          />
+          Обычный режим
+        </label>
+      </fieldset>
 
-      <label>
-        <input
-          type="radio"
-          name="mode"
-          [checked]="mode() === null"
-          (change)="mode.set(null); clearChat()"
-        />
-        Обычный режим
-      </label>
+      <!-- Кнопка очистки -->
+      <button (click)="clearChat()" [disabled]="isLoading()">Очистить чат</button>
 
-      <button (click)="clearChat()">Очистить</button>
-
+      <!-- Настройки -->
       <div class="settings">
-        <label style="margin-left: 16px;">
+        <label>
           Температура:
           <select [(ngModel)]="temperature" [disabled]="isLoading()">
             <option [ngValue]="0">0 (детерминированно)</option>
@@ -44,7 +49,8 @@
             <option [ngValue]="2">2 (сходим с ума)</option>
           </select>
         </label>
-        <label style="margin-left: 16px;">
+
+        <label>
           LLM:
           <select [(ngModel)]="model" [disabled]="isLoading()">
             <option [ngValue]="Model.DeepSeek_V3_2">DeepSeek 3.2V</option>
@@ -54,60 +60,79 @@
         </label>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="chat-messages">
-    @for (msg of messages(); track msg;) {
+  <!-- Сообщения -->
+  <main class="chat-messages">
+    @for (msg of messages(); track msg) {
       @if (msg.role === 'user' || msg.role === 'assistant') {
-        <div class="message" [class.user]="msg.role === 'user'">
-          <strong>{{ msg.role === 'user' ? 'Вы' : model() }}:</strong>
+        <article class="message" [class.user]="msg.role === 'user'">
+          <header>
+            <strong>{{ msg.role === 'user' ? 'Вы' : model() }}:</strong>
+          </header>
+
           @if (formatJson(msg.content); as json) {
             <pre class="json-response">{{ json }}</pre>
-            @if (msg.usage && msg.timeOfResponse) {
-              <p class="json-response usage">{{ JSON.stringify(msg.usage) }}</p>
-              <p class="json-response time">{{ 'Время ответа в мс: ' + msg.timeOfResponse }}</p>
-            }
           } @else {
             <p class="formatted-text">{{ msg.content }}</p>
-            @if (msg.usage && msg.timeOfResponse) {
-              <p class="json-response usage">{{ JSON.stringify(msg.usage) }}</p>
-              <p class="json-response time">{{ 'Время ответа в мс: ' + msg.timeOfResponse }}</p>
-            }
           }
-        </div>
+
+          @if (msg.usage && (msg.usage.prompt_tokens || msg.usage.completion_tokens)) {
+            <footer class="message-meta">
+              @if (msg.usage.prompt_tokens) {
+                <span class="tokens">Запрос: {{ msg.usage.prompt_tokens }} токенов</span>
+              }
+              @if (msg.usage.completion_tokens) {
+                <span class="tokens">Ответ: {{ msg.usage.completion_tokens }} токенов</span>
+              }
+              @if (msg.timeOfResponse) {
+                <span class="time">⏱️ {{ msg.timeOfResponse }} мс</span>
+              }
+            </footer>
+          }
+        </article>
       }
     }
 
     @if (isLoading()) {
-      <div class="message assistant">
+      <article class="message assistant">
         <strong>{{ model() }}:</strong>
         <p>Думает...</p>
-      </div>
+      </article>
     }
-  </div>
+  </main>
 
-  <div class="chat-input">
-        <textarea
-          [(ngModel)]="userInput"
-          placeholder="Введите сообщение..."
-          (keydown.enter)="sendMessage(); $event.preventDefault()"
-          [disabled]="isLoading()"
-        ></textarea>
-    <button
-      (click)="sendMessage()"
-      [disabled]="!userInput.trim() || isLoading()"
-    >
-      Отправить
-    </button>
-    <button
-      (click)="sendSystemPromptMessage()"
-      [disabled]="!userInput.trim() || isLoading()"
-    >
-      Изменить system prompt
-    </button>
-  </div>
+  <!-- Ввод сообщения -->
+  <footer class="chat-input">
+    <textarea
+      [(ngModel)]="userInput"
+      placeholder="Введите сообщение..."
+      (keydown.enter)="sendMessage(); $event.preventDefault()"
+      [disabled]="isLoading()"
+      rows="3"
+    ></textarea>
+
+    <div class="input-actions">
+      <button
+        type="button"
+        (click)="sendMessage()"
+        [disabled]="!userInput.trim() || isLoading()"
+      >
+        Отправить
+      </button>
+
+      <button
+        type="button"
+        (click)="sendSystemPromptMessage()"
+        [disabled]="!userInput.trim() || isLoading()"
+      >
+        Изменить system prompt
+      </button>
+    </div>
+  </footer>
 </div>
 
+<!-- Ошибки -->
 @if (error()) {
-  <div class="error">{{ error() }}</div>
+  <div class="error" role="alert">{{ error() }}</div>
 }
