@@ -38,6 +38,10 @@
       <!-- Кнопка очистки -->
       <button (click)="clearChat()" [disabled]="isLoading()">Очистить чат</button>
 
+      <button (click)="summarizeChat()" [disabled]="messages().length === 0 || isLoading()">
+        📝 Сжать диалог
+      </button>
+
       <!-- Настройки -->
       <div class="settings">
         <label>
@@ -65,33 +69,31 @@
   <!-- Сообщения -->
   <main class="chat-messages">
     @for (msg of messages(); track msg) {
-      @if (msg.role === 'user' || msg.role === 'assistant') {
-        <article class="message" [class.user]="msg.role === 'user'">
-          <header>
-            <strong>{{ msg.role === 'user' ? 'Вы' : model() }}:</strong>
-          </header>
+      <article class="message" [class.user]="msg.role === 'user'">
+        <header>
+          <strong>{{ msg.role === 'user' ? 'Вы' : (msg.role === 'assistant' ? model() : 'System') }}:</strong>
+        </header>
 
-          @if (formatJson(msg.content); as json) {
-            <pre class="json-response">{{ json }}</pre>
-          } @else {
-            <p class="formatted-text">{{ msg.content }}</p>
-          }
+        @if (formatJson(msg.content); as json) {
+          <pre class="json-response">{{ json }}</pre>
+        } @else {
+          <p class="formatted-text">{{ msg.content }}</p>
+        }
 
-          @if (msg.usage && (msg.usage.prompt_tokens || msg.usage.completion_tokens)) {
-            <footer class="message-meta">
-              @if (msg.usage.prompt_tokens) {
-                <span class="tokens">Запрос: {{ msg.usage.prompt_tokens }} токенов</span>
-              }
-              @if (msg.usage.completion_tokens) {
-                <span class="tokens">Ответ: {{ msg.usage.completion_tokens }} токенов</span>
-              }
-              @if (msg.timeOfResponse) {
-                <span class="time">⏱️ {{ msg.timeOfResponse }} мс</span>
-              }
-            </footer>
-          }
-        </article>
-      }
+        @if (msg.usage && (msg.usage.prompt_tokens || msg.usage.completion_tokens)) {
+          <footer class="message-meta">
+            @if (msg.usage.prompt_tokens) {
+              <span class="tokens">Запрос: {{ msg.usage.prompt_tokens }} токенов</span>
+            }
+            @if (msg.usage.completion_tokens) {
+              <span class="tokens">Ответ: {{ msg.usage.completion_tokens }} токенов</span>
+            }
+            @if (msg.timeOfResponse) {
+              <span class="time">⏱️ {{ msg.timeOfResponse }} мс</span>
+            }
+          </footer>
+        }
+      </article>
     }
 
     @if (isLoading()) {

@@ -111,6 +111,51 @@ export class Chat {
       });
   }
 
+  summarizeChat(): void {
+    if (this.messages().length === 0) return;
+
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    const dialogue = this.messages()
+      .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+      .map(msg => `${msg.role === 'user' ? 'Пользователь' : 'Ассистент'}: ${msg.content}`)
+      .join('\n\n');
+
+    const summaryPrompt = `Кратко резюмируй следующий диалог между Пользователем и Ассистентом.
+Сосредоточься на ключевых темах, решениях и выводах. Не добавляй ничего от себя.
+Резюме должно быть на русском языке и занимать не более 6 предложений."
+
+Диалог:
+${dialogue}`;
+    this.chatService.sendMessage(
+      [{ role: 'user', content: summaryPrompt, usage: undefined, timeOfResponse: undefined }],
+      null,
+      0
+    )
+      .pipe(
+        catchError(err => {
+          console.error('Ошибка при создании резюме:', err);
+          this.error.set('Не удалось создать резюме диалога.');
+          this.isLoading.set(false);
+          return of({ choices: [{ message: { role: 'assistant', content: 'Резюме недоступно.' } }], usage: undefined });
+        }),
+        finalize(() => this.isLoading.set(false))
+      )
+      .subscribe(response => {
+        const summary = response.choices[0].message.content;
+
+        this.messages.set([{
+          role: 'system',
+          content: `[РЕЗЮМЕ ПРЕДЫДУЩЕГО ДИАЛОГА]: ${summary}`,
+          usage: undefined,
+          timeOfResponse: undefined
+        }]);
+
+        console.log('Диалог сжат до резюме:', summary);
+      });
+  }
+
   // Для шаблона
   protected readonly Model = Model;
   protected readonly JSON = JSON;
