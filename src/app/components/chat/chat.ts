@@ -5,6 +5,7 @@ import { Model } from '../../enums/model';
 import { ChatService } from '../../services/chat.service';
 import { CredentialsService } from '../../services/credentials.service';
 import { ChatMessage } from '../../interfaces/chat-message.interface';
+import {ChatStorageService} from '../../services/chat-storage.service';
 
 @Component({
   selector: 'app-chat',
@@ -15,8 +16,9 @@ import { ChatMessage } from '../../interfaces/chat-message.interface';
 export class Chat {
   private chatService = inject(ChatService);
   private credentialsService = inject(CredentialsService);
+  private storageService = inject(ChatStorageService);
 
-  messages = signal<ChatMessage[]>([]);
+  messages = signal<ChatMessage[]>(this.storageService.loadMessages());
   userInput = '';
   isLoading = signal(false);
   mode = signal<null | 'book' | 'json'>(null);
@@ -28,6 +30,10 @@ export class Chat {
     effect(() => {
       this.credentialsService.setCredentials(this.model());
     });
+
+    effect(() => {
+      this.storageService.saveMessages(this.messages());
+    }, { allowSignalWrites: false });
   }
 
   sendMessage(): void {
